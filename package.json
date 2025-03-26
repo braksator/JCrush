@@ -1,0 +1,28 @@
+{
+  "name": "jcrush",
+  "version": "1.0.0-a",
+  "description": "Deduplicates a JavaScript file",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "compression",
+    "compress",
+    "dedupe",
+    "deduplicate",
+    "deduplicator",
+    "compressor",
+    "crush",
+    "crusher"
+  ],
+  "author": "D.A. Braksator",
+  "license": "Unlicense",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "longestrepeatedstrings": "^1.0.10",
+    "plugin-error": "^2.0.1",
+    "stream": "^0.0.3"
+  }
+}
