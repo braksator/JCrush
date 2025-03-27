@@ -9,9 +9,7 @@
 var fs = require('fs').promises;
 var LRS = require('longestrepeatedstrings');
 
-const jcrush = require('./jcrush');
-
-module.exports = Object.assign(jcrush, {
+const jcrush = module.exports = {
 
   /**
    * Determines if a generated variable name is no good.
@@ -206,7 +204,7 @@ module.exports = Object.assign(jcrush, {
       console.error('❌ JCrush Error:', error);
     }
   }
-});
+};
 
 // CLI Usage
 if (require.main === module) {
