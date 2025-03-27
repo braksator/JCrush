@@ -111,12 +111,6 @@ Additionally, you can alter compression behavior:
 - `trim` (Boolean, default: `false`): If `true`, won't dedupe white space.  When `false` finds more compression opportunities.
 - `break` (Array, default: `[]`): An array of substrings by which to split input. Can be used to concatenate an array of texts with a special char.
 
-There are also options to control the default progress output:
-
-- `prog` (Boolean, default: `true`): Displays a progress counter, defaults to showing in terminal.
-- `progID` (String, default: null): A HTML ID element to insert progress counter into.
-- `progText` (String, default: null): Text to prepend to progress counter.
-
 ---
 
 ## Origin

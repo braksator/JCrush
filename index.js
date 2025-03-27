@@ -90,7 +90,7 @@ const jcrush = module.exports = {
     do {
       // Run LRS to test the string
       r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0,
-        words: 0, penalty: varName.length + overhead + 1, prog: 1, progText: 'Finding next match... ' }, ...opts });
+        words: 0, penalty: varName.length + overhead + 1 }, ...opts });
       if (skipped >= r.length) break; // All done.
       let searchStr = r[skipped].substring,
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
