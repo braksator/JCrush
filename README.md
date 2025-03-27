@@ -57,7 +57,7 @@ import jcrush from 'jcrush';
 gulp.task('jcrush', function () {
   let opts = { eval: 1, let: 0 }; // Optional - see 'Parameters' section below.
   return gulp.src('script.min.js')
-    .pipe(jcrush(opts))
+    .pipe(jcrush.gulp(opts))
     .pipe(gulp.dest('./'));
 });
 ```
