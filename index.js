@@ -117,7 +117,7 @@ const jcrush = module.exports = {
    * @param {string} jsCode - The Javascript code as a string.
    * @returns {string} - The transformed Javascript.
    */
-  processCode: (jsCode, opts = {}) => {
+  jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
     opts = { ...{ eval: 1, let: 0 }, ...opts };
     // Escape jsCode string.
@@ -169,7 +169,7 @@ const jcrush = module.exports = {
    * @param {object} opts - (optional) Options.
    * @returns {Transform} - A transform stream for Gulp.
    */
-  gulp: (opts = {}) => {
+  jcrush: (opts = {}) => {
     var { Transform } = require('stream');
     var PluginError = require('plugin-error');
     const PLUGIN_NAME = 'gulp-jcrush';
@@ -179,7 +179,7 @@ const jcrush = module.exports = {
         if (file.isNull()) return cb(null, file);
         if (file.isStream()) return cb(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
         try {
-          file.contents = Buffer.from(jcrush.processCode(file.contents.toString(), opts));
+          file.contents = Buffer.from(jcrush.jcrushCode(file.contents.toString(), opts));
           cb(null, file);
         }
         catch (err) {
@@ -195,9 +195,9 @@ const jcrush = module.exports = {
    * @param {string} outputFile - Output JS file path.
    * @param {object} opts - (optional) Options.
    */
-  processFile: async (inputFile, outputFile, opts = {}) => {
+  jcrushFile: async (inputFile, outputFile, opts = {}) => {
     try {
-      await fs.writeFile(outputFile, jcrush.processCode(await fs.readFile(inputFile, 'utf8'), opts), 'utf8');
+      await fs.writeFile(outputFile, jcrush.jcrushCode(await fs.readFile(inputFile, 'utf8'), opts), 'utf8');
       console.log(`✅ JCrush processed: ${outputFile}`);
     }
     catch (error) {
@@ -221,5 +221,5 @@ if (require.main === module) {
     process.exit(1);
   }
   // Pass options along with input and output file paths
-  jcrush.processFile(args[0], args[1], opts);
+  jcrush.jcrushFile(args[0], args[1], opts);
 }
