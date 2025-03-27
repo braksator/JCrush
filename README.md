@@ -93,8 +93,8 @@ A configuration object with the following properties:
 
 ## Origin
 
-This script is an adaptation of svgTask.js in (Ant Farm Social)[https://github.com/antfarmsocial/AntFarmSocial].
-That project takes advantage of the (Longest Repeated Strings)[https://www.npmjs.com/package/longestrepeatedstrings] package,
+This script is an adaptation of svgTask.js in [Ant Farm Social](https://github.com/antfarmsocial/AntFarmSocial).
+That project takes advantage of the [Longest Repeated Strings](https://www.npmjs.com/package/longestrepeatedstrings) package,
 as does this one.
 
 ---
