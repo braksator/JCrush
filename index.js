@@ -78,33 +78,31 @@ const jcrush = module.exports = {
    */
   jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
-    opts = { ...{ maxLen: 40, eval: 1, let: 0, semi: 0, break: [] }, ...opts };
-    // Include some sensible break points for processing to speed things up.
+    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, words: 0 }, ...opts };
     !opts.break.includes(';') && opts.break.push(';');
     !opts.break.includes('\n') && opts.break.push('\n');
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
     // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
-    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}],
+    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], code, lastIndex, regex, match, parts,
       breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 4, boilerplate = 4, reps = {};
     // Pass the break string into the options.
     opts.break.push(breakString);
     // Keep this loop going while there are results.
     do {
       // Run LRS to test the string
-      r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0,
-        words: 0, penalty: varName.length + overhead + 1 }, ...opts });
+      r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
       if (skipped >= r.length) break; // All done.
-      let searchStr = r[skipped].substring,
+      let searchStr = r[skipped].substring, // Remove trailing backslashes.
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
       if (estimate > 0) {
         // Loop through each segment of the jsCode array backwards
         for (let i = codeData.length - 1; i >= 0; i--) {
-          let code = codeData[i];
+          code = codeData[i];
           if (code.type == 's') {
-            let lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), match, parts = [];
+            lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), parts = [];
             while ((match = regex.exec(code.val)) !== null) {
               // Add text before the match as a string (type: 's')
               if (match.index > lastIndex) parts.push({ val: code.val.slice(lastIndex, match.index), type: 's' });
@@ -125,11 +123,9 @@ const jcrush = module.exports = {
         // Get the next identifier
         varName = jcrush.nextVar(varName);
         // Update jsCode for further dedupe testing
-        jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : '').join(breakString);
+        jsCode = codeData.map(({ val, type }) => type == 's' ? val : '').join(breakString);
       }
-      else {
-        skipped++;
-      }
+      else skipped++;
     } while (r);
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : val).join('+');
