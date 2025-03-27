@@ -4,7 +4,7 @@ declare module 'jcrush' {
     let?: boolean;
   }
 
-  export function processCode(code: string, opts?: JCrushOptions): string;
-  export function processFile(inputFile: string, outputFile: string, opts?: JCrushOptions): void;
-  export function gulp(opts?: JCrushOptions): any;
+  export function jcrushCode(code: string, opts?: JCrushOptions): string;
+  export function jcrushFile(inputFile: string, outputFile: string, opts?: JCrushOptions): void;
+  export function jcrush(opts?: JCrushOptions): any;
 }
