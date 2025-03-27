@@ -7,13 +7,11 @@
  */
 
 var fs = require('fs').promises;
-var { Transform } = require('stream');
-var PluginError = require('plugin-error');
 var LRS = require('longestrepeatedstrings');
 
-const PLUGIN_NAME = 'gulp-jcrush';
+const jcrush = require('./jcrush');
 
-var jcrush = module.exports = {
+module.exports = Object.assign(jcrush, {
 
   /**
    * Determines if a generated variable name is no good.
@@ -174,6 +172,9 @@ var jcrush = module.exports = {
    * @returns {Transform} - A transform stream for Gulp.
    */
   gulp: (opts = {}) => {
+    var { Transform } = require('stream');
+    var PluginError = require('plugin-error');
+    const PLUGIN_NAME = 'gulp-jcrush';
     return new Transform({
       objectMode: true,
       transform(file, _, cb) {
@@ -205,7 +206,7 @@ var jcrush = module.exports = {
       console.error('❌ JCrush Error:', error);
     }
   }
-};
+});
 
 // CLI Usage
 if (require.main === module) {
