@@ -96,13 +96,12 @@ const jcrush = module.exports = {
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * (r[skipped].count) - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
-       console.log(searchStr);
       if (estimate > 0) {
         // Loop through each segment of the jsCode array backwards
         for (let i = codeData.length - 1; i >= 0; i--) {
           let code = codeData[i];
           if (code.type == 's') {
-            let lastIndex = 0, regex = new RegExp(searchStr, 'g'), match, parts = [];
+            let lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), match, parts = [];
             while ((match = regex.exec(code.val)) !== null) {
               // Add text before the match as a string (type: 's')
               if (match.index > lastIndex) parts.push({ val: code.val.slice(lastIndex, match.index), type: 's' });
@@ -139,7 +138,6 @@ const jcrush = module.exports = {
       console.log(`✅ JCrush reduced code by ${originalSize - jcrush.byteLen(out)} bytes.`);
       return out;
     }
-    console.log(jcrush.byteLen(out), originalSize);
     console.log(`⚠️  After adding ${(opts.let ? 4 : 0) + (opts.eval ? 7 : 19) + (opts.semi ? 1 : 0)} bytes of overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
   },
