@@ -3,7 +3,7 @@
 JCrush
 ========================
 
-Deduplicates a JavaScript file.
+Deduplicates a Javascript file.
 
 > Unlike typical code minification (e.g. terser), JCrush can handle code that contains a lot of big words in strings.  You'll want to run it after your usual minifier.  It will work on text files other than Javascript files, but the resulting file must be interpreted using Javascript.
 

@@ -79,6 +79,9 @@ const jcrush = module.exports = {
   jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [] }, ...opts };
+    // Include some sensible break points for processing to speed things up.
+    !opts.break.includes(';') && opts.break.push(';');
+    !opts.break.includes('\n') && opts.break.push('\n');
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
     // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
