@@ -77,7 +77,7 @@ const jcrush = module.exports = {
    * @param {string} str - The string to test for replacements.
    * @returns {object} - A key/value object of find/replace pairs.
    */
-  calcReplacements: (str) => {
+  calcReplacements: (str, opts) => {
     // Note: "overhead" is the per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
     let r = {}, len, varName = 'a', found, skipped, savings, res, originalStr, overhead = 4, boilerplate = 4;
     // We need an upper limit.
@@ -86,7 +86,7 @@ const jcrush = module.exports = {
       skipped = 0;
       len = str.length;
       // Run LRS to test the string
-      res = LRS.text(str, {minLen: varName.length + overhead, maxLen: 40, minOcc: 2, trim: 0, penalty: varName.length});
+      res = LRS.text(str, { ...{ maxRes: 50, minLen: varName.length + overhead, maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, words: 0, break: [], penalty: varName.length + overhead }, ...opts });
       // If we're out of results, bounce out of here
       if (!res) break;
       do {
@@ -130,7 +130,7 @@ const jcrush = module.exports = {
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
     // Calculate replacements.
-    let r = jcrush.calcReplacements(jsCode);
+    let r = jcrush.calcReplacements(jsCode, opts);
     if (Object.keys(r).length) {
       // Reformat jsCode for the algorithm
       let codeData = [{val: jsCode, type: 's'}];

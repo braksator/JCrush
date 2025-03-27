@@ -5,6 +5,8 @@ JCrush
 
 Deduplicates a JavaScript file.
 
+> Unlike typical code minification (e.g. terser), JCrush can handle code that contains a lot of big words in strings.  You'll want to run it after your usual minifier.  It will work on text files other than Javascript files, but the resulting file must be interpreted using Javascript.
+
 ## Installation
 
 This is a Node.JS module available from the Node Package Manager (NPM).
@@ -88,6 +90,19 @@ A configuration object with the following properties:
 - `let` (Boolean, default: `false`):
   - If `true`, **JCrush** will use the `let` keyword for variable declarations.
   - If `false`, it will create global variables without preceeding with any keyword, for shorter output.
+
+Additionally, you can alter compression behavior:
+
+- `maxRes` (Number, default: 50): Max results per iteration. This isn't very useful and you should just leave it as is.
+- `minLen` (Number, default: Dynamically computed): The minimum length of substrings to consider, would typically compute to at least 5 or 6.  Don't recommend you change this unless setting it much higher.
+- `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.
+- `minOcc` (Number, default: 2): The minimum number of occurrences a substring must have to be included.  2 is good, maybe 3.  Doesn't speed up processing to change it so you may as well keep it.
+- `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
+- `clean` (Boolean, default: `false`): If `true`, Splits input on symbol chars.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
+- `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
+- `trim` (Boolean, default: `false`): If `true`, won't dedupe white space.  When `false` finds more compression opportunities.
+- `break` (Array, default: `[]`): An array of substrings by which to split input. Can be used to concatenate an array of texts with a special char.
+- `penalty` (Number, default: Dynamically computed): Per-occurence score penalty, would typically compute to at least 5 or 6.  Don't recommend you change this unless setting it higher in accordance with a custom minLen.
 
 ---
 
