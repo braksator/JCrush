@@ -1,6 +1,6 @@
 {
   "name": "jcrush",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Deduplicates a JavaScript file",
   "main": "index.js",
   "types": "index.d.ts",
