@@ -78,7 +78,7 @@ const jcrush = module.exports = {
    */
   jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
-    opts = { ...{ eval: 1, let: 0, semi: 0, break: [] }, ...opts };
+    opts = { ...{ maxLen: 40, eval: 1, let: 0, semi: 0, break: [] }, ...opts };
     // Include some sensible break points for processing to speed things up.
     !opts.break.includes(';') && opts.break.push(';');
     !opts.break.includes('\n') && opts.break.push('\n');
@@ -98,7 +98,7 @@ const jcrush = module.exports = {
       let searchStr = r[skipped].substring,
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
-        estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * (r[skipped].count) - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
+        estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
       if (estimate > 0) {
         // Loop through each segment of the jsCode array backwards
         for (let i = codeData.length - 1; i >= 0; i--) {
@@ -141,7 +141,7 @@ const jcrush = module.exports = {
       console.log(`✅ JCrush reduced code by ${originalSize - jcrush.byteLen(out)} bytes.`);
       return out;
     }
-    console.log(`⚠️  After adding ${(opts.let ? 4 : 0) + (opts.eval ? 7 : 19) + (opts.semi ? 1 : 0)} bytes of overhead JCrush could not optimize code. Keeping original.`);
+    console.log(`⚠️  After adding ${(opts.let ? 4 : 0) + (opts.eval ? 7 : 19) + (opts.semi ? 1 : 0) + 2} bytes of overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
   },
 
