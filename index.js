@@ -169,7 +169,7 @@ const jcrush = module.exports = {
    * @param {object} opts - (optional) Options.
    * @returns {Transform} - A transform stream for Gulp.
    */
-  jcrush: (opts = {}) => {
+  gulp: (opts = {}) => {
     var { Transform } = require('stream');
     var PluginError = require('plugin-error');
     const PLUGIN_NAME = 'gulp-jcrush';
