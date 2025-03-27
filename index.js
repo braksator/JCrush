@@ -16,7 +16,7 @@ const jcrush = module.exports = {
    * @param {string} varName - The variable name as a string.
    * @returns {bool} - True if the variable name is a reserved word.
    */
-  isBadVarName: (varName) => {
+  isBadVarName: varName => {
     try {
       // Try using the string as a variable name
       eval(`let ${varName} = 1`);
@@ -32,7 +32,7 @@ const jcrush = module.exports = {
    * @param {string} str - The identifier as a string.
    * @returns {string} - The next identifier.
    */
-  nextVar: (str) => {
+  nextVar: str => {
     // Position of char to change
     var change = str.length - 1,
       // The value of that char
@@ -54,69 +54,21 @@ const jcrush = module.exports = {
   },
 
   /**
-   * Fixes malformed template literals.
-   * @param {string} str - The string to test for template literals
-   * @returns {string} - A truncated version of the string with no partial template literals.
-   */
-  fixTemplateLiteral: (str) => {
-    let firstClose = str.indexOf('}'), firstOpen = str.indexOf('${');
-    if (firstClose < firstOpen || (firstClose != -1 && firstOpen == -1)) str = str.slice(firstClose + 1);
-    let lastOpen = str.lastIndexOf('${');
-    return lastOpen != -1 && str.indexOf('}', lastOpen) == -1 ? str.slice(0, lastOpen) : str;
-  },
-
-  /**
    * Gets length of string in bytes.
    * @param {string} str - The string to check.
    * @returns {int} - The number of bytes.
    */
-  byteLen: (str) => new TextEncoder().encode(str).length,
+  byteLen: str => new TextEncoder().encode(str).length,
 
   /**
-   * Works out the string replacement to compress the SVG data.
-   * @param {string} str - The string to test for replacements.
-   * @returns {object} - A key/value object of find/replace pairs.
+   * Finds a unique break control string that does not appear in text.
+   * @param {string} str - The text to check.
+   * @returns {string} - The break string.
    */
-  calcReplacements: (str, opts) => {
-    // Note: "overhead" is the per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
-    let r = {}, len, varName = 'a', found, skipped, savings, res, originalStr, overhead = 4, boilerplate = 4;
-    // We need an upper limit.
-    for (let i = 0; i < 500; i++) {
-      found = 0;
-      skipped = 0;
-      len = str.length;
-      // Run LRS to test the string
-      res = LRS.text(str, { ...{ maxRes: 50, minLen: varName.length + overhead, maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, words: 0, break: [], penalty: varName.length + overhead }, ...opts });
-      // If we're out of results, bounce out of here
-      if (!res) break;
-      do {
-        if (!res[skipped]) break;
-        // Fix malformed substrings
-        res[skipped].substring = jcrush.fixTemplateLiteral(res[skipped].substring);
-        // Store original string incase replacement is deemed poor
-        originalStr = str;
-        // Perform the replacement
-        str = str.replaceAll(res[skipped].substring, '${' + varName + '}');
-        // Estimate the savings
-        savings = len - str.length - boilerplate - varName.length - overhead;
-        // Output progress
-        if (savings > 0) {
-          console.log('Replacing', '`' + res[skipped].substring + '`', 'saves', savings, 'chars.');
-          // Perform the replacement on our test string
-          r[varName] = res[skipped].substring;
-          // Get the next identifier
-          varName = jcrush.nextVar(varName);
-          found = 1
-        }
-        else {
-          // Undo and skip poorly performing replacements
-          skipped++;
-          str = originalStr;
-        }
-      } while (savings < 0);
-      if (!found) break;
-    }
-    return r;
+  getBreak: str => {
+    let control = "•";
+    while (str.includes(control)) control += "•"
+    return control;
   },
 
   /**
@@ -126,16 +78,26 @@ const jcrush = module.exports = {
    */
   jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
-    opts = { ...{ eval: 1, let: 0 }, ...opts };
+    opts = { ...{ eval: 1, let: 0, semi: 0, break: [] }, ...opts };
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-    // Calculate replacements.
-    let r = jcrush.calcReplacements(jsCode, opts);
-    if (Object.keys(r).length) {
-      // Reformat jsCode for the algorithm
-      let codeData = [{val: jsCode, type: 's'}];
-      // Loop through each replacement entry
-      for (const [varName, searchStr] of Object.entries(r)) {
+    // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
+    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}],
+      breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 4, boilerplate = 4, reps = {};
+    // Pass the break string into the options.
+    opts.break.push(breakString);
+    // Keep this loop going while there are results.
+    do {
+      // Run LRS to test the string
+      r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0,
+        words: 0, penalty: varName.length + overhead + 1, prog: 1, progText: 'Finding next match... ' }, ...opts });
+      if (skipped >= r.length) break; // All done.
+      let searchStr = r[skipped].substring,
+        // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
+        // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
+        estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * (r[skipped].count) - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
+       console.log(searchStr);
+      if (estimate > 0) {
         // Loop through each segment of the jsCode array backwards
         for (let i = codeData.length - 1; i >= 0; i--) {
           let code = codeData[i];
@@ -154,19 +116,31 @@ const jcrush = module.exports = {
             codeData.splice(i, 1, ...parts);
           }
         }
+        // Report progress
+        console.log('Replacing', r[skipped].count, 'instances of', '`' + searchStr + '`', 'saves', estimate, 'chars.');
+        // Store the replacement.
+        reps[varName] = searchStr;
+        // Get the next identifier
+        varName = jcrush.nextVar(varName);
+        // Update jsCode for further dedupe testing
+        jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : '').join(breakString);
       }
-      // Glue the jsCode back together
-      let newCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : val).join('+'),
-        // Create variable definitions string
-        vars = Object.entries(r).map(([varName, value]) => `${varName}=\`${value}\``).join(','),
-        // Return the processed JS
-        out = (opts.let ? ' let ' : '') + opts.eval ? `${vars};eval(${newCode})` : `${vars};(new Function(${newCode}))()`;
-      if (out.length < jsCode.length) {
-        console.log(`✅ JCrush reduced code by ${jcrush.byteLen(jsCode) - jcrush.byteLen(out)} bytes.`);
-        return out;
+      else {
+        skipped++;
       }
+    } while (r);
+    // Glue the code back together
+    jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : val).join('+');
+    // Create variable definitions string
+    let vars = Object.entries(reps).map(([varName, value]) => `${varName}=\`${value}\``).join(','),
+      // Return the processed JS
+      out = (opts.let ? 'let ' : '') + (opts.eval ? `${vars};eval(${jsCode})` : `${vars};(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
+    if (jcrush.byteLen(out) < originalSize) {
+      console.log(`✅ JCrush reduced code by ${originalSize - jcrush.byteLen(out)} bytes.`);
+      return out;
     }
-    console.log(`⚠️  JCrush could not optimize code. Keeping original.`);
+    console.log(jcrush.byteLen(out), originalSize);
+    console.log(`⚠️  After adding ${(opts.let ? 4 : 0) + (opts.eval ? 7 : 19) + (opts.semi ? 1 : 0)} bytes of overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
   },
 
@@ -176,8 +150,7 @@ const jcrush = module.exports = {
    * @returns {Transform} - A transform stream for Gulp.
    */
   gulp: (opts = {}) => {
-    var { Transform } = require('stream');
-    var PluginError = require('plugin-error');
+    let { Transform } = require('stream'), PluginError = require('plugin-error');
     const PLUGIN_NAME = 'gulp-jcrush';
     return new Transform({
       objectMode: true,

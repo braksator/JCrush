@@ -98,18 +98,24 @@ A configuration object with the following properties:
   - If `true`, **JCrush** will use the `let` keyword for variable declarations.
   - If `false`, it will create global variables without preceeding with any keyword, for shorter output.
 
+- `semi` (Boolean, default: `false`):
+  - If `true`, **JCrush** will put a semi-colon at the end of the file.
+  - If `false`, no semi-colon, for shorter output.
+
 Additionally, you can alter compression behavior:
 
-- `maxRes` (Number, default: 50): Max results per iteration. This isn't very useful and you should just leave it as is.
-- `minLen` (Number, default: Dynamically computed): The minimum length of substrings to consider, would typically compute to at least 5 or 6.  Don't recommend you change this unless setting it much higher.
 - `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.
-- `minOcc` (Number, default: 2): The minimum number of occurrences a substring must have to be included.  2 is good, maybe 3.  Doesn't speed up processing to change it so you may as well keep it.
 - `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
 - `clean` (Boolean, default: `false`): If `true`, Splits input on symbol chars.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
 - `trim` (Boolean, default: `false`): If `true`, won't dedupe white space.  When `false` finds more compression opportunities.
 - `break` (Array, default: `[]`): An array of substrings by which to split input. Can be used to concatenate an array of texts with a special char.
-- `penalty` (Number, default: Dynamically computed): Per-occurence score penalty, would typically compute to at least 5 or 6.  Don't recommend you change this unless setting it higher in accordance with a custom minLen.
+
+There are also options to control the default progress output:
+
+- `prog` (Boolean, default: `true`): Displays a progress counter, defaults to showing in terminal.
+- `progID` (String, default: null): A HTML ID element to insert progress counter into.
+- `progText` (String, default: null): Text to prepend to progress counter.
 
 ---
 
