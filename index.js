@@ -66,6 +66,13 @@ const jcrush = module.exports = {
   },
 
   /**
+   * Gets length of string in bytes.
+   * @param {string} str - The string to check.
+   * @returns {int} - The number of bytes.
+   */
+  byteLen: (str) => new TextEncoder().encode(str).length,
+
+  /**
    * Works out the string replacement to compress the SVG data.
    * @param {string} str - The string to test for replacements.
    * @returns {object} - A key/value object of find/replace pairs.
@@ -156,7 +163,7 @@ const jcrush = module.exports = {
         out = (opts.let ? ' let ' : '') + opts.eval ? `${vars};eval(${newCode});` : `${vars};(new Function(${newCode}))();`;
       console.log(out);
       if (out.length < jsCode.length) {
-        console.log(`✅ JCrush reduced code by ${jsCode.length - out.length} chars.`);
+        console.log(`✅ JCrush reduced code by ${byteLen(jsCode) - byteLen(out)} bytes.`);
         return out;
       }
     }
