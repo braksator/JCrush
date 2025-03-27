@@ -160,7 +160,7 @@ const jcrush = module.exports = {
         // Create variable definitions string
         vars = Object.entries(r).map(([varName, value]) => `${varName}=\`${value}\``).join(','),
         // Return the processed JS
-        out = (opts.let ? ' let ' : '') + opts.eval ? `${vars};eval(${newCode});` : `${vars};(new Function(${newCode}))();`;
+        out = (opts.let ? ' let ' : '') + opts.eval ? `${vars};eval(${newCode})` : `${vars};(new Function(${newCode}))()`;
       if (out.length < jsCode.length) {
         console.log(`✅ JCrush reduced code by ${jcrush.byteLen(jsCode) - jcrush.byteLen(out)} bytes.`);
         return out;

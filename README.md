@@ -7,6 +7,13 @@ Deduplicates a JavaScript file.
 
 > Unlike typical code minification (e.g. terser), JCrush can handle code that contains a lot of big words in strings.  You'll want to run it after your usual minifier.  It will work on text files other than Javascript files, but the resulting file must be interpreted using Javascript.
 
+It will produce a file that looks like:
+```javascript
+a=`used phrases`,b=`frequently`;eval(`There are `+a+` that appear`+b)
+```
+It's a bit scary... but it works!
+By the way, running JCrush over a sizable js file with the default maximum-compression options is quite slow.
+
 ## Installation
 
 This is a Node.JS module available from the Node Package Manager (NPM).
