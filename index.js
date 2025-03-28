@@ -86,10 +86,9 @@ const jcrush = module.exports = {
     if (!val.includes("'")) return `'${val}'`; // Otherwise, use single quotes
     if (!val.includes('`') && !val.includes('${')) return `\`${val}\``; // Use backticks if no template literals
     // If all options contain conflicts, choose the one requiring the least escaping
-    let countEscapes = str => (str.match(/["'`]/g) || []).length,
-      doubleQuoteEscapes = countEscapes(val.replace(/"/g, '\\"')),
-      singleQuoteEscapes = countEscapes(val.replace(/'/g, "\\'")),
-      backtickEscapes = countEscapes(val.replace(/`/g, '\\`'));
+    let doubleQuoteEscapes = (val.match(/"/g) || []).length,
+      singleQuoteEscapes = (val.match(/'/g) || []).length,
+      backtickEscapes = (val.match(/`/g) || []).length;
     // Pick the option with the least escaping needed
     if (doubleQuoteEscapes <= singleQuoteEscapes && doubleQuoteEscapes <= backtickEscapes)
       return `"${val.replace(/"/g, '\\"')}"`;
