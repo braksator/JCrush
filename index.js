@@ -93,7 +93,7 @@ const jcrush = module.exports = {
       // Run LRS to test the string
       r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
       if (skipped >= r.length) break; // All done.
-      let searchStr = r[skipped].substring, // Remove trailing backslashes.
+      let searchStr = r[skipped].substring.replace(/\\$/, ''), // Remove trailing backslashes.
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
@@ -190,10 +190,12 @@ if (require.main === module) {
       opts.eval = parseInt(args[index + 1]) ? 1 : 0;
     else if (arg === '--let' && args[index + 1] !== undefined)
       opts.let = parseInt(args[index + 1]) ? 1 : 0;
+    else if (arg === '--semi' && args[index + 1] !== undefined)
+      opts.semi = parseInt(args[index + 1]) ? 1 : 0;
   });
   // Ensure the arguments are correct
   if (args.length < 2) {
-    console.log("Usage: jcrush <input.js> <output.js> [--eval 1|0] [--let 1|0]");
+    console.log("Usage: jcrush <input.js> <output.js> [--eval 1|0] [--let 1|0] [--semi 1|0]");
     process.exit(1);
   }
   // Pass options along with input and output file paths

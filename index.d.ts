@@ -2,6 +2,7 @@ declare module 'jcrush' {
   export interface JCrushOptions {
     eval?: boolean;
     let?: boolean;
+    semi?: boolean;
   }
 
   export function jcrushCode(code: string, opts?: JCrushOptions): string;
