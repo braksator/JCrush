@@ -92,6 +92,7 @@ const jcrush = module.exports = {
     do {
       // Run LRS to test the string
       r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
+      if (skipped >= r.length) break; // All done.
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
         searchStr = r[skipped].substring.replace(/\\$/, ''), // Remove trailing backslashes.
@@ -100,7 +101,7 @@ const jcrush = module.exports = {
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
         estimate < 1 && skipped++;
       }
-      if (skipped >= r.length) break; // All done.
+      if (estimate < 1) continue; // Next loop pls.
       for (let i = codeData.length - 1; i >= 0; i--) {
         code = codeData[i];
         if (code.type == 's') {
