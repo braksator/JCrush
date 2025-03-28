@@ -109,8 +109,8 @@ Additionally, you can alter compression behavior:
 - `clean` (Boolean, default: `false`): If `true`, Splits input on symbol chars.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
 - `trim` (Boolean, default: `false`): If `true`, won't dedupe white space.  When `false` finds more compression opportunities.
-- `break` (Array, default: `[]`): An array of substrings by which to split input. Can be used to concatenate an array of texts with a special char.
-- `split` (Array, default: `[]`): An array of substrings after which input will be split. Semi-colons and newlines are added automatically.
+- `break` (Array, default: `[]`): An array of substrings *by* which to split input. The substring won't be matched, and can be used to concatenate an array of texts with a special char.
+- `split` (Array, default: `[]`): An array of substrings *after* which input will be split. Splits can help performance.
 
 ---
 

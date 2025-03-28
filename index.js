@@ -97,10 +97,8 @@ const jcrush = module.exports = {
    */
   jcrushCode: (jsCode, opts = {}) => {
     // Add default options.
-    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [], maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, words: 0 }, ...opts };
-    !opts.split.includes(';') && opts.split.push(';');
-    !opts.split.includes('\n') && opts.split.push('\n');
-    !opts.split.includes('\\') && opts.split.push('\\');
+    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [], maxLen: 40, minOcc: 2,
+      omit: [], trim: 0, clean: 0, escSafe: 1, words: 0 }, ...opts };
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
     // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
@@ -120,7 +118,7 @@ const jcrush = module.exports = {
       if (skipped >= r.length) break; // All done.
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
-        searchStr = r[skipped].substring.replace(/\\$/, ''), // Remove trailing backslashes.
+        searchStr = r[skipped],
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
