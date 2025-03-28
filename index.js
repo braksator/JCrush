@@ -92,7 +92,12 @@ const jcrush = module.exports = {
     // Keep this loop going while there are results.
     do {
       // Run LRS to test the string
-      r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
+      try {
+        r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
+      }
+      catch (err) {
+        console.error(err);
+      }
       if (skipped >= r.length) break; // All done.
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
