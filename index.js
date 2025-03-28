@@ -72,6 +72,34 @@ const jcrush = module.exports = {
   },
 
   /**
+   * Determines the optimal way to quote a string while minimizing escaping.
+   * - Prefers double quotes if no `"` exists.
+   * - Prefers single quotes if no `'` exists.
+   * - Prefers backticks if no template literals (`${}`) or backticks exist.
+   * - If all contain conflicts, selects the quote type requiring the least escaping.
+   *
+   * @param {string} val - The string to be quoted.
+   * @returns {string} - The quoted string with minimal escaping.
+   */
+  quoteVal: val => {
+    if (!val.includes('"')) return `"${val}"`; // Prefer double quotes if possible
+    if (!val.includes("'")) return `'${val}'`; // Otherwise, use single quotes
+    if (!val.includes('`') && !val.includes('${')) return `\`${val}\``; // Use backticks if no template literals
+    // If all options contain conflicts, choose the one requiring the least escaping
+    let countEscapes = str => (str.match(/["'`]/g) || []).length,
+      doubleQuoteEscapes = countEscapes(val.replace(/"/g, '\\"')),
+      singleQuoteEscapes = countEscapes(val.replace(/'/g, "\\'")),
+      backtickEscapes = countEscapes(val.replace(/`/g, '\\`'));
+    // Pick the option with the least escaping needed
+    if (doubleQuoteEscapes <= singleQuoteEscapes && doubleQuoteEscapes <= backtickEscapes)
+      return `"${val.replace(/"/g, '\\"')}"`;
+    else if (singleQuoteEscapes <= backtickEscapes)
+      return `'${val.replace(/'/g, "\\'")}'`;
+    else
+      return `\`${val.replace(/`/g, '\\`')}\``;
+  },
+
+  /**
    * Processes Javascript content by deduplicating strings and wrapping it.
    * @param {string} jsCode - The Javascript code as a string.
    * @returns {string} - The transformed Javascript.
@@ -126,7 +154,7 @@ const jcrush = module.exports = {
         }
       }
       // Report progress
-      console.log('Replacing', r[skipped].count, 'instances of', '`' + searchStr + '`', 'saves', estimate, 'chars.');
+      console.log('Replacing', r[skipped].count, 'instances of', jcrush.quoteVal(searchStr), 'saves', estimate, 'chars.');
       // Store the replacement.
       reps[varName] = searchStr;
       // Get the next identifier
@@ -135,9 +163,9 @@ const jcrush = module.exports = {
       jsCode = codeData.map(({ val, type }) => type == 's' ? val : '').join(breakString);
     } while (r);
     // Glue the code back together
-    jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : val).join('+');
+    jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
-    let vars = Object.entries(reps).map(([varName, value]) => `${varName}=\`${value}\``).join(','),
+    let vars = Object.entries(reps).map(([varName, value]) => varName + '=' + jcrush.quoteVal(val)).join(','),
       // Return the processed JS
       out = (opts.let ? 'let ' : '') + (opts.eval ? `${vars};eval(${jsCode})` : `${vars};(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
     if (jcrush.byteLen(out) < originalSize) {
