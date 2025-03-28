@@ -84,48 +84,48 @@ const jcrush = module.exports = {
     // Escape jsCode string.
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
     // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
-    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], code, lastIndex, regex, match, parts,
+    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], code, lastIndex, regex, match, parts, searchStr, estimate,
       breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 4, boilerplate = 4, reps = {};
     // Pass the break string into the options.
     opts.break.push(breakString);
     // Keep this loop going while there are results.
     do {
       // Run LRS to test the string
-      r = LRS.text(jsCode, { ...{ maxRes: 1 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
-      if (skipped >= r.length) break; // All done.
-      let searchStr = r[skipped].substring.replace(/\\$/, ''), // Remove trailing backslashes.
+      r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
+      estimate = 0;
+      while (skipped < r.length && estimate < 1) {
+        searchStr = r[skipped].substring.replace(/\\$/, ''), // Remove trailing backslashes.
         // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
         // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
         estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
-      if (estimate > 0) {
-        // Loop through each segment of the jsCode array backwards
-        for (let i = codeData.length - 1; i >= 0; i--) {
-          code = codeData[i];
-          if (code.type == 's') {
-            lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), parts = [];
-            while ((match = regex.exec(code.val)) !== null) {
-              // Add text before the match as a string (type: 's')
-              if (match.index > lastIndex) parts.push({ val: code.val.slice(lastIndex, match.index), type: 's' });
-              // Add the match as a variable (type: 'v')
-              parts.push({ val: varName, type: 'v' });
-              lastIndex = regex.lastIndex;
-            }
-            // Add any remaining text after the last match as a string (type: 's')
-            if (lastIndex < code.val.length) parts.push({ val: code.val.slice(lastIndex), type: 's' });
-            // Update codeData with the newly processed segments
-            codeData.splice(i, 1, ...parts);
-          }
-        }
-        // Report progress
-        console.log('Replacing', r[skipped].count, 'instances of', '`' + searchStr + '`', 'saves', estimate, 'chars.');
-        // Store the replacement.
-        reps[varName] = searchStr;
-        // Get the next identifier
-        varName = jcrush.nextVar(varName);
-        // Update jsCode for further dedupe testing
-        jsCode = codeData.map(({ val, type }) => type == 's' ? val : '').join(breakString);
+        estimate < 1 && skipped++;
       }
-      else skipped++;
+      if (skipped >= r.length) break; // All done.
+      for (let i = codeData.length - 1; i >= 0; i--) {
+        code = codeData[i];
+        if (code.type == 's') {
+          lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), parts = [];
+          while ((match = regex.exec(code.val)) !== null) {
+            // Add text before the match as a string (type: 's')
+            if (match.index > lastIndex) parts.push({ val: code.val.slice(lastIndex, match.index), type: 's' });
+            // Add the match as a variable (type: 'v')
+            parts.push({ val: varName, type: 'v' });
+            lastIndex = regex.lastIndex;
+          }
+          // Add any remaining text after the last match as a string (type: 's')
+          if (lastIndex < code.val.length) parts.push({ val: code.val.slice(lastIndex), type: 's' });
+          // Update codeData with the newly processed segments
+          codeData.splice(i, 1, ...parts);
+        }
+      }
+      // Report progress
+      console.log('Replacing', r[skipped].count, 'instances of', '`' + searchStr + '`', 'saves', estimate, 'chars.');
+      // Store the replacement.
+      reps[varName] = searchStr;
+      // Get the next identifier
+      varName = jcrush.nextVar(varName);
+      // Update jsCode for further dedupe testing
+      jsCode = codeData.map(({ val, type }) => type == 's' ? val : '').join(breakString);
     } while (r);
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? `\`${val}\`` : val).join('+');
