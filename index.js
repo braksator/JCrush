@@ -82,20 +82,12 @@ const jcrush = module.exports = {
    * @returns {string} - The quoted string with minimal escaping.
    */
   quoteVal: val => {
-    if (!val.includes('"')) return `"${val}"`; // Prefer double quotes if possible
-    if (!val.includes("'")) return `'${val}'`; // Otherwise, use single quotes
-    if (!val.includes('`') && !val.includes('${')) return `\`${val}\``; // Use backticks if no template literals
-    // If all options contain conflicts, choose the one requiring the least escaping
-    let doubleQuoteEscapes = (val.match(/"/g) || []).length,
-      singleQuoteEscapes = (val.match(/'/g) || []).length,
-      backtickEscapes = (val.match(/`/g) || []).length;
-    // Pick the option with the least escaping needed
-    if (doubleQuoteEscapes <= singleQuoteEscapes && doubleQuoteEscapes <= backtickEscapes)
-      return `"${val.replace(/"/g, '\\"')}"`;
-    else if (singleQuoteEscapes <= backtickEscapes)
-      return `'${val.replace(/'/g, "\\'")}'`;
-    else
-      return `\`${val.replace(/`/g, '\\`')}\``;
+    // Test all three options with escaping
+    let dq = `"${val.replace(/"/g, '\\"')}"`,
+        sq = `'${val.replace(/'/g, "\\'")}'`,
+        bt = `\`${val.replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/\}/g, '\\}')}\``;
+    // Return the shortest
+    return (dq.length <= sq.length && dq.length <= bt.length) ? dq : sq.length <= bt.length ? sq : bt;
   },
 
   /**
