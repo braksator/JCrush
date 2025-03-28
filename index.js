@@ -137,7 +137,7 @@ const jcrush = module.exports = {
       console.log(`✅ JCrush reduced code by ${originalSize - jcrush.byteLen(out)} bytes.`);
       return out;
     }
-    console.log(`⚠️  After adding ${(opts.let ? 4 : 0) + (opts.eval ? 7 : 19) + (opts.semi ? 1 : 0) + 2} bytes of overhead JCrush could not optimize code. Keeping original.`);
+    console.log(`⚠️  After adding overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
   },
 
