@@ -98,9 +98,9 @@ const jcrush = module.exports = {
   code: (jsCode, opts = {}) => {
     // Add default options
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
-      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0 }, ...opts };
-    // Escape jsCode string
-    jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1 }, ...opts };
+    // Strip escaped newlines and any whitespace adjacent to them.
+    if (opts.strip) jsCode = jsCode.replace(/\s*\\n\s*/g, '');
     // Note: "overhead" is the max per-occurence overhead (++), and "boilerplate" is the definition overhead (=,)
     let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], c, lastIndex, regex, match, parts, searchStr, estimate,
       quotedSearchStr, breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 2, boilerplate = 2, reps = {}, vars,
@@ -120,6 +120,16 @@ const jcrush = module.exports = {
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
         searchStr = r[skipped].substring;
+        if (!jsCode.includes(searchStr)) {
+          // Could it be overescaped?
+          let unesc = JSON.parse(`"${searchStr}"`);
+          if (!jsCode.includes(searchStr)) {
+            console.warn("Could not replace:", jcrush.quoteVal(searchStr));
+            skipped++;
+            continue;
+          }
+          else searchStr = unesc;
+        }
         quotedSearchStr = jcrush.quoteVal(searchStr);
         quotedSearchStrLen = jcrush.byteLen(quotedSearchStr);
         // Note: The estimate will underestimate the saving by one char in cases where the duplicate strings are adjacent to each other
@@ -151,7 +161,7 @@ const jcrush = module.exports = {
       // Get the next identifier
       varName = jcrush.nextVar(varName);
       // Update jsCode for further dedupe testing
-      jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join(breakString);
+      jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join('');
     } while (r);
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');

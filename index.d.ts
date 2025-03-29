@@ -3,6 +3,7 @@ declare module 'jcrush' {
     eval?: boolean;
     let?: boolean;
     semi?: boolean;
+    strip?: boolean;
   }
 
   export function code(code: string, opts?: JCrushOptions): string;

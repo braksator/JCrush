@@ -102,6 +102,10 @@ A configuration object with the following properties:
   - If `true`, **JCrush** will put a semi-colon at the end of the file.
   - If `false`, no semi-colon, for shorter output.
 
+- `strip` (Boolean, default: `true`):
+  - If `true`, **JCrush** will strip escaped newlines and any adjacent whitespace from input.
+  - If `false`, will retain the input as-is.
+
 Additionally, you can alter compression behavior:
 
 - `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.
