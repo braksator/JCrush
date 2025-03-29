@@ -106,11 +106,15 @@ Additionally, you can alter compression behavior:
 
 - `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.
 - `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
-- `clean` (Boolean, default: `false`): If `true`, Splits input on symbol chars.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
+- `clean` (Boolean, default: `false`): If `true`, Strips symbols from input.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
 - `trim` (Boolean, default: `false`): If `true`, won't dedupe white space.  When `false` finds more compression opportunities.
-- `break` (Array, default: `[]`): An array of substrings *by* which to split input. The substring won't be matched, and can be used to concatenate an array of texts with a special char.
-- `split` (Array, default: `[]`): An array of substrings *after* which input will be split. Splits can help performance.
+- `break` (Array, default: `[]`): An array of substrings *by* which to split input. The break substring won't be matched. This can be used to concatenate an array of texts with a special char.
+- `split` (Array, default: `[':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '=']`): Splits input after specified
+strings and may include them in matches as well as any whitespace afterwards. Setting these up properly for your particular input is key
+to balancing the effectiveness of compression vs the efficiency of execution time.  The more splits in input the more compression
+opportunities are found, whereas fewer splits executes much faster but won't compress as much.
+- `escSafe` (Boolean, default: `true`): Will take extra care around escaped characters.  You'll probably want to keep this.
 
 ---
 

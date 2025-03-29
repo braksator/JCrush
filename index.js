@@ -95,18 +95,19 @@ const jcrush = module.exports = {
    * @param {string} jsCode - The Javascript code as a string.
    * @returns {string} - The transformed Javascript.
    */
-  jcrushCode: (jsCode, opts = {}) => {
-    // Add default options.
-    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [], maxLen: 40, minOcc: 2,
-      omit: [], trim: 0, clean: 0, escSafe: 1, words: 0 }, ...opts };
-    // Escape jsCode string.
+  code: (jsCode, opts = {}) => {
+    // Add default options
+    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
+      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 0, words: 0 }, ...opts };
+    // Escape jsCode string
     jsCode = jsCode.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-    // Note: "overhead" is the max per-occurence overhead (`++`), and "boilerplate" is the definition overhead (='',).
-    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], code, lastIndex, regex, match, parts, searchStr, estimate,
-      breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 4, boilerplate = 4, reps = {};
-    // Pass the break string into the options.
+    // Note: "overhead" is the max per-occurence overhead (++), and "boilerplate" is the definition overhead (=,)
+    let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], c, lastIndex, regex, match, parts, searchStr, estimate,
+      quotedSearchStr, breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 2, boilerplate = 2, reps = {}, vars,
+      saving, quotedSearchStrLen;
+    // Pass the break string into the options
     opts.break.push(breakString);
-    // Keep this loop going while there are results.
+    // Keep this loop going while there are results
     do {
       // Run LRS to test the string
       try {
@@ -115,54 +116,72 @@ const jcrush = module.exports = {
       catch (err) {
         console.error(err);
       }
-      if (skipped >= r.length) break; // All done.
+      if (skipped >= r.length) break; // All done
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
-        searchStr = r[skipped],
-        // Note: The estimate will overestimate in cases where the duplicate strings are adjacent to each other.
-        // That is considered too much of an edge case for the purpose of this module as a developer working with code would have easily noticed that.
-        estimate = (jcrush.byteLen(searchStr) - varName.length - overhead) * r[skipped].count - (varName.length + jcrush.byteLen(searchStr) + boilerplate);
+        searchStr = r[skipped].substring;
+        quotedSearchStr = jcrush.quoteVal(searchStr);
+        quotedSearchStrLen = jcrush.byteLen(quotedSearchStr);
+        // Note: The estimate will underestimate the saving by one char in cases where the duplicate strings are adjacent to each other
+        estimate = (quotedSearchStrLen - varName.length - overhead) * r[skipped].count - (varName.length + quotedSearchStrLen + boilerplate);
         estimate < 1 && skipped++;
       }
-      if (estimate < 1 || skipped >= r.length) continue; // Next loop pls.
+      if (estimate < 1 || skipped >= r.length) continue; // Next loop pls
       for (let i = codeData.length - 1; i >= 0; i--) {
-        code = codeData[i];
-        if (code.type == 's') {
+        c = codeData[i];
+        if (c.type == 's') {
           lastIndex = 0, regex = new RegExp(searchStr.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'), 'g'), parts = [];
-          while ((match = regex.exec(code.val)) !== null) {
+          while ((match = regex.exec(c.val)) !== null) {
             // Add text before the match as a string (type: 's')
-            if (match.index > lastIndex) parts.push({ val: code.val.slice(lastIndex, match.index), type: 's' });
+            if (match.index > lastIndex) parts.push({ val: c.val.slice(lastIndex, match.index), type: 's' });
             // Add the match as a variable (type: 'v')
             parts.push({ val: varName, type: 'v' });
             lastIndex = regex.lastIndex;
           }
           // Add any remaining text after the last match as a string (type: 's')
-          if (lastIndex < code.val.length) parts.push({ val: code.val.slice(lastIndex), type: 's' });
+          if (lastIndex < c.val.length) parts.push({ val: c.val.slice(lastIndex), type: 's' });
           // Update codeData with the newly processed segments
           codeData.splice(i, 1, ...parts);
         }
       }
       // Report progress
-      console.log('Replacing', r[skipped].count, 'instances of', jcrush.quoteVal(searchStr), 'saves', estimate, 'chars.');
-      // Store the replacement.
-      reps[varName] = searchStr;
+      console.log('Replacing', r[skipped].count, 'instances of', quotedSearchSr, 'saves', estimate, 'chars.');
+      // Store the replacement
+      reps[varName] = quotedSearchStr;
       // Get the next identifier
       varName = jcrush.nextVar(varName);
       // Update jsCode for further dedupe testing
-      jsCode = codeData.map(({ val, type }) => type == 's' ? val : '').join(breakString);
+      jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join(breakString);
     } while (r);
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
-    let vars = Object.entries(reps).map(([varName, value]) => varName + '=' + jcrush.quoteVal(val)).join(','),
-      // Return the processed JS
-      out = (opts.let ? 'let ' : '') + (opts.eval ? `${vars};eval(${jsCode})` : `${vars};(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
-    if (jcrush.byteLen(out) < originalSize) {
-      console.log(`✅ JCrush reduced code by ${originalSize - jcrush.byteLen(out)} bytes.`);
+    vars = Object.entries(reps).map(([varName, value]) => varName + '=' + value).join(',');
+    // Return the processed JS
+    out = (opts.let ? 'let ' : '') + (opts.eval ? `${vars};eval(${jsCode})` : `${vars};(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
+    saving = originalSize - jcrush.byteLen(out);
+    if (saving > 0) {
+      console.log(`✅ JCrush reduced code by ${saving} bytes.`);
       return out;
     }
     console.log(`⚠️  After adding overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
+  },
+
+  /**
+   * CLI function to process files.
+   * @param {string} inputFile - Input JS file path.
+   * @param {string} outputFile - Output JS file path.
+   * @param {object} opts - (optional) Options.
+   */
+  file: async (inputFile, outputFile, opts = {}) => {
+    try {
+      await fs.writeFile(outputFile, jcrush.code(await fs.readFile(inputFile, 'utf8'), opts), 'utf8');
+      console.log(`✅ JCrush processed: ${outputFile}`);
+    }
+    catch (error) {
+      console.error('❌ JCrush Error:', error);
+    }
   },
 
   /**
@@ -179,7 +198,7 @@ const jcrush = module.exports = {
         if (file.isNull()) return cb(null, file);
         if (file.isStream()) return cb(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
         try {
-          file.contents = Buffer.from(jcrush.jcrushCode(file.contents.toString(), opts));
+          file.contents = Buffer.from(jcrush.code(file.contents.toString(), opts));
           cb(null, file);
         }
         catch (err) {
@@ -187,23 +206,8 @@ const jcrush = module.exports = {
         }
       }
     });
-  },
-
-  /**
-   * CLI function to process files.
-   * @param {string} inputFile - Input JS file path.
-   * @param {string} outputFile - Output JS file path.
-   * @param {object} opts - (optional) Options.
-   */
-  jcrushFile: async (inputFile, outputFile, opts = {}) => {
-    try {
-      await fs.writeFile(outputFile, jcrush.jcrushCode(await fs.readFile(inputFile, 'utf8'), opts), 'utf8');
-      console.log(`✅ JCrush processed: ${outputFile}`);
-    }
-    catch (error) {
-      console.error('❌ JCrush Error:', error);
-    }
   }
+
 };
 
 // CLI Usage
@@ -223,5 +227,5 @@ if (require.main === module) {
     process.exit(1);
   }
   // Pass options along with input and output file paths
-  jcrush.jcrushFile(args[0], args[1], opts);
+  jcrush.file(args[0], args[1], opts);
 }
