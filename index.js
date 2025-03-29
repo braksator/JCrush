@@ -145,7 +145,7 @@ const jcrush = module.exports = {
         }
       }
       // Report progress
-      console.log('Replacing', r[skipped].count, 'instances of', quotedSearchSr, 'saves', estimate, 'chars.');
+      console.log('Replacing', r[skipped].count, 'instances of', quotedSearchStr, 'saves', estimate, 'chars.');
       // Store the replacement
       reps[varName] = quotedSearchStr;
       // Get the next identifier
