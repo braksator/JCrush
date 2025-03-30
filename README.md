@@ -14,6 +14,8 @@ a=`used phrases`,b=`frequently`;eval(`There are `+a+` that appear`+b)
 It's a bit scary... but it works!
 By the way, running JCrush over a sizable js file with the default maximum-compression options is quite slow.
 
+For a CSS equivalent see [Gulp JCrush CSS](https://www.npmjs.com/package/gulp-jcrushcss).
+
 ## Installation
 
 This is a Node.JS module available from the Node Package Manager (NPM).
