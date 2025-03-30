@@ -97,6 +97,7 @@ const jcrush = module.exports = {
    */
   code: (jsCode, opts = {}) => {
     // Add default options
+    let jsCodeBkp = jsCode;
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
       maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0, prog: 1, fin: 1 }, ...opts };
     // Strip escaped newlines and any whitespace adjacent to them.
@@ -176,7 +177,7 @@ const jcrush = module.exports = {
       return out;
     }
     opts.fin && console.log(`⚠️  After adding overhead JCrush could not optimize code. Keeping original.`);
-    return jsCode;
+    return jsCodeBkp;
   },
 
   /**
