@@ -8,12 +8,12 @@ declare module 'jcrush' {
     prog?: boolean;
     fin?: boolean;
     maxLen?: number;
-    omit?: Array<string>;
+    omit?: string[];
     clean?: boolean;
     words?: boolean;
     trim?: boolean;
-    break?: Array<string>;
-    split?: Array<string>;
+    break?: string[];
+    split?: string[];
     escSafe?: boolean;
   }
 
