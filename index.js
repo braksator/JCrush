@@ -98,7 +98,7 @@ const jcrush = module.exports = {
   code: (jsCode, opts = {}) => {
     // Add default options
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
-      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1 }, ...opts };
+      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0 }, ...opts };
     // Strip escaped newlines and any whitespace adjacent to them.
     if (opts.strip) jsCode = jsCode.replace(/\s*\\n\s*/g, '');
     // Note: "overhead" is the max per-occurence overhead (++), and "boilerplate" is the definition overhead (=,)
@@ -162,13 +162,13 @@ const jcrush = module.exports = {
       varName = jcrush.nextVar(varName);
       // Update jsCode for further dedupe testing
       jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join('');
-    } while (r);
+    } while (r && (!opts.reps || opts.reps > Object.keys(reps).length));
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
     vars = Object.entries(reps).map(([varName, value]) => varName + '=' + value).join(',');
     // Return the processed JS
-    out = (opts.let ? 'let ' : '') + (opts.eval ? `${vars};eval(${jsCode})` : `${vars};(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
+    let out = (opts.let ? 'let ' : '') + vars + ';' + (opts.eval ? `eval(${jsCode})` : `(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
     saving = originalSize - jcrush.byteLen(out);
     if (saving > 0) {
       console.log(`✅ JCrush reduced code by ${saving} bytes.`);

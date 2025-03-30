@@ -4,6 +4,7 @@ declare module 'jcrush' {
     let?: boolean;
     semi?: boolean;
     strip?: boolean;
+    reps?: number;
   }
 
   export function code(code: string, opts?: JCrushOptions): string;
