@@ -223,20 +223,19 @@ const jcrush = module.exports = {
 
 // CLI Usage
 if (require.main === module) {
-  var args = process.argv.slice(2), opts = {};
+  let args = process.argv.slice(2), opts = {};
   args.forEach((arg, index) => {
-    if (arg === '--eval' && args[index + 1] !== undefined)
-      opts.eval = parseInt(args[index + 1]) ? 1 : 0;
-    else if (arg === '--let' && args[index + 1] !== undefined)
-      opts.let = parseInt(args[index + 1]) ? 1 : 0;
-    else if (arg === '--semi' && args[index + 1] !== undefined)
-      opts.semi = parseInt(args[index + 1]) ? 1 : 0;
+    if (arg.startsWith('--')) {
+      let key = arg.slice(2), value = args[index + 1];
+      if (value === '1' || value === '0') opts[key] = value === '1';
+      else if (value && !value.startsWith('--')) opts[key] = value;
+      else opts[key] = true;
+    }
   });
-  // Ensure the arguments are correct
   if (args.length < 2) {
-    console.log("Usage: jcrush <input.js> <output.js> [--eval 1|0] [--let 1|0] [--semi 1|0]");
+    console.log("Usage: jcrush <input.js> <output.js> [--eval 1|0] [--let 1|0] [--semi 1|0] ...");
+    console.log("See README file for full list of arguments.");
     process.exit(1);
   }
-  // Pass options along with input and output file paths
   jcrush.file(args[0], args[1], opts);
 }

@@ -35,7 +35,7 @@ or with Yarn:
 To run **JCrush** from the command line:
 
 ```bash
-node jcrush input.js output.js
+node node_modules/jcrush input.js output.js
 ```
 
 This will process the `input.js` file, deduplicate its strings, and save the output to `output.js`.
@@ -45,7 +45,7 @@ This will process the `input.js` file, deduplicate its strings, and save the out
 You can modify the behavior of **JCrush** by passing the following options as command-line flags:
 
 ```bash
-node jcrush input.js output.js --eval 1 --let 0
+node node_modules/jcrush input.js output.js --eval 1 --let 0
 ```
 
 See ***Parameters*** section below for an explanation of these options.
