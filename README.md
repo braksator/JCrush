@@ -109,6 +109,14 @@ A configuration object with the following properties:
 - `reps` (Number, default: 0):
   - Used to set a maximum number of compression replacements.
 
+- `prog` (Boolean, default: `true`):
+  - If `true`, **JCrush** will output console messages about each replacement.
+  - If `false`, will work silently.
+
+- `fin` (Boolean, default: `true`):
+  - If `true`, **JCrush** will output a final console message about bytes saved or failure.
+  - If `false`, will remain silent.
+
 Additionally, you can alter compression behavior:
 
 - `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.

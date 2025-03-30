@@ -5,6 +5,16 @@ declare module 'jcrush' {
     semi?: boolean;
     strip?: boolean;
     reps?: number;
+    prog?: boolean;
+    fin?: boolean;
+    maxLen?: number;
+    omit?: Array;
+    clean?: boolean;
+    words?: boolean;
+    trim?: boolean;
+    break?: Array;
+    split?: Array;
+    escSafe?: boolean;
   }
 
   export function code(code: string, opts?: JCrushOptions): string;

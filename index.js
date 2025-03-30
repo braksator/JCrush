@@ -98,13 +98,13 @@ const jcrush = module.exports = {
   code: (jsCode, opts = {}) => {
     // Add default options
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
-      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0 }, ...opts };
+      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0, prog: 1, fin: 1 }, ...opts };
     // Strip escaped newlines and any whitespace adjacent to them.
     if (opts.strip) jsCode = jsCode.replace(/\s*\\n\s*/g, '');
     // Note: "overhead" is the max per-occurence overhead (++), and "boilerplate" is the definition overhead (=,)
     let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], c, lastIndex, regex, match, parts, searchStr, estimate,
       quotedSearchStr, breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 2, boilerplate = 2, reps = {}, vars,
-      saving, quotedSearchStrLen;
+      saving, quotedSearchStrLen, repCount = 0;
     // Pass the break string into the options
     opts.break.push(breakString);
     // Keep this loop going while there are results
@@ -154,15 +154,16 @@ const jcrush = module.exports = {
           codeData.splice(i, 1, ...parts);
         }
       }
-      // Report progress
-      console.log('Replacing', r[skipped].count, 'instances of', quotedSearchStr, 'saves', estimate, 'chars.');
       // Store the replacement
       reps[varName] = quotedSearchStr;
+      repCount++;
+      // Report progress
+      opts.prog && console.log(repCount + ')', 'Replacing', r[skipped].count, 'instances of', quotedSearchStr, 'saves', estimate, 'chars.');
       // Get the next identifier
       varName = jcrush.nextVar(varName);
       // Update jsCode for further dedupe testing
       jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join('');
-    } while (r && (!opts.reps || opts.reps > Object.keys(reps).length));
+    } while (r && (!opts.reps || opts.reps > repCount));
     // Glue the code back together
     jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
@@ -171,10 +172,10 @@ const jcrush = module.exports = {
     let out = (opts.let ? 'let ' : '') + vars + ';' + (opts.eval ? `eval(${jsCode})` : `(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
     saving = originalSize - jcrush.byteLen(out);
     if (saving > 0) {
-      console.log(`✅ JCrush reduced code by ${saving} bytes.`);
+      opts.fin && console.log(`✅ JCrush reduced code by ${saving} bytes.`);
       return out;
     }
-    console.log(`⚠️  After adding overhead JCrush could not optimize code. Keeping original.`);
+    opts.fin && console.log(`⚠️  After adding overhead JCrush could not optimize code. Keeping original.`);
     return jsCode;
   },
 
