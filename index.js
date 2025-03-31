@@ -83,11 +83,23 @@ const jcrush = module.exports = {
    */
   quoteVal: val => {
     // Test all three options with escaping
-    let dq = `"${val.replace(/"/g, '\\"')}"`,
-        sq = `'${val.replace(/'/g, "\\'")}'`,
-        bt = `\`${val.replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/\}/g, '\\}')}\``;
+    let dq = `"${val.replace(/(?<!\\)"/g, '\\"')}"`,
+        sq = `'${val.replace(/(?<!\\)'/g, "\\'")}'`,
+        bt = `\`${val.replace(/`/g, '\\`').replace(/(?<!\\)\$\{/g, '\\${').replace(/(?<!\\)\}/g, '\\}')}\``;
     // Return the shortest
     return (dq.length <= sq.length && dq.length <= bt.length) ? dq : sq.length <= bt.length ? sq : bt;
+  },
+
+  /**
+   * Fixes malformed template literals
+   * @param {string} str - The string to check.
+   * @returns {string} - The corrected string.
+   */
+  fixTemplateLiteral: str => {
+    let firstClose = str.indexOf('}'), firstOpen = str.indexOf('${');
+    if (firstClose < firstOpen || (firstClose != -1 && firstOpen == -1)) str = str.slice(firstClose + 1);
+    let lastOpen = str.lastIndexOf('${');
+    return lastOpen != -1 && str.indexOf('}', lastOpen) == -1 ? str.slice(0, lastOpen) : str;
   },
 
   /**
@@ -99,20 +111,32 @@ const jcrush = module.exports = {
     // Add default options
     let jsCodeBkp = jsCode;
     opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
-      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0, prog: 1, fin: 1 }, ...opts };
+      maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0, prog: 1, fin: 1, tpl: 0,
+      escTpl: 0, resVars: [] }, ...opts };
     // Strip escaped newlines and any whitespace adjacent to them.
     if (opts.strip) jsCode = jsCode.replace(/\s*\\n\s*/g, '');
+    if (opts.escTpl) jsCode = jsCode.replace(/`/g, '\\`').replace(/(?<!\\)\$\{/g, '\\${').replace(/(?<!\\)\}/g, '\\}');
     // Note: "overhead" is the max per-occurence overhead (++), and "boilerplate" is the definition overhead (=,)
     let originalSize = jcrush.byteLen(jsCode), codeData = [{val: jsCode, type: 's'}], c, lastIndex, regex, match, parts, searchStr, estimate,
-      quotedSearchStr, breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 2, boilerplate = 2, reps = {}, vars,
-      saving, quotedSearchStrLen, repCount = 0;
+      quotedSearchStr, breakString = jcrush.getBreak(jsCode), r, varName = 'a', skipped = 0, overhead = 2, tplOverhead = 0, boilerplate = 2, reps = {}, vars,
+      saving, quotedSearchStrLen, repCount = 0, tplBraces = 0, tplSearchStr;
     // Pass the break string into the options
     opts.break.push(breakString);
+    if (opts.tpl) {
+      if (/(?<!\\)\$\{/.test(jsCode)) {
+        opts.fin && console.log(`⚠️  Input contains template literal syntax which is not compatible with "opts.tpl: true" and "opts.tplEsc: false".`);
+        return jsCodeBkp;
+      }
+      overhead = 0;
+      tplOverhead = 3;
+      tplBraces = 2;
+    }
+    let penaltyCalc = overhead + tplBraces + 1;
     // Keep this loop going while there are results
     do {
       // Run LRS to test the string
       try {
-        r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + overhead + 1, penalty: varName.length + overhead + 1 }, ...opts });
+        r = LRS.text(jsCode, { ...{ maxRes: 999 + skipped, minLen: varName.length + penaltyCalc, penalty: varName.length + penaltyCalc}, ...opts });
       }
       catch (err) {
         console.error(err);
@@ -121,6 +145,7 @@ const jcrush = module.exports = {
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
         searchStr = r[skipped].substring;
+        if (opts.tpl) searchStr = fixTemplateLiteral(searchStr);
         if (!jsCode.includes(searchStr)) {
           // Could it be overescaped?
           let unesc = JSON.parse(`"${searchStr}"`);
@@ -132,9 +157,10 @@ const jcrush = module.exports = {
           else searchStr = unesc;
         }
         quotedSearchStr = jcrush.quoteVal(searchStr);
+        tplSearchStr = '${' + searchStr + '}';
         quotedSearchStrLen = jcrush.byteLen(quotedSearchStr);
         // Note: The estimate will underestimate the saving by one char in cases where the duplicate strings are adjacent to each other
-        estimate = (quotedSearchStrLen - varName.length - overhead) * r[skipped].count - (varName.length + quotedSearchStrLen + boilerplate);
+        estimate = (quotedSearchStrLen - varName.length - overhead - tplOverhead) * r[skipped].count - (varName.length + quotedSearchStrLen + boilerplate);
         estimate < 1 && skipped++;
       }
       if (estimate < 1 || skipped >= r.length) continue; // Next loop pls
@@ -156,17 +182,20 @@ const jcrush = module.exports = {
         }
       }
       // Store the replacement
-      reps[varName] = quotedSearchStr;
+      reps[varName] = opts.tpl ? searchStr : quotedSearchStr;
       repCount++;
       // Report progress
       opts.prog && console.log(repCount + ')', 'Replacing', r[skipped].count, 'instances of', quotedSearchStr, 'saves', estimate, 'chars.');
       // Get the next identifier
-      varName = jcrush.nextVar(varName);
+      do {
+        varName = jcrush.nextVar(varName);
+      } while (opts.resVars.includes(varName));
       // Update jsCode for further dedupe testing
       jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join('');
     } while (r && (!opts.reps || opts.reps > repCount));
     // Glue the code back together
-    jsCode = codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
+    jsCode = opts.tpl ? '`' + codeData.map(({ val, type }) => type == 's' ? val : `\${${val}}`).join('') + '`'
+      : codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
     vars = Object.entries(reps).map(([varName, value]) => varName + '=' + value).join(',');
     // Return the processed JS

@@ -119,6 +119,17 @@ A configuration object with the following properties:
   - If `true`, **JCrush** will output a final console message about bytes saved or failure.
   - If `false`, will remain silent.
 
+- `tpl` (Boolean, default: `false`):
+  - If `true`, **JCrush** will use template literal syntax `${...}` for replacements.
+  - If `false`, will use string concatenation which may be more optimal with code that already uses a lot of template literals.
+
+- `tplEsc` (Boolean, default: `false`):
+  - If `true`, **JCrush** will escape template literals in input.
+  - If `false`, won't escape template literals, but will result in error if using `tpl` option with code that contains template literals.
+
+- `resVars` (Array, default: `[]`):
+  Supply an array of variable names that JCrush must NOT use for some reason.
+
 Additionally, you can alter compression behavior:
 
 - `maxLen` (Number, default: `40`): The maximum length of substrings to consider.  Setting this higher will slow things down.
