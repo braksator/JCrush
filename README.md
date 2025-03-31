@@ -92,9 +92,10 @@ gulp.task('default', gulp.series(
 
 A configuration object with the following properties:
 
-- `eval` (Boolean, default: `true`):
-  - If `true`, **JCrush** will use `eval()` for executing code strings, which has shorter output.
-  - If `false`, **JCrush** will use `new Function()` instead, which may be more secure in some environments.
+- `wrap` (String, default: `eval`):
+  - If `eval`, **JCrush** will use `eval()` for executing code strings, which has shorter output.
+  - If `newFunc`, **JCrush** will use `new Function()` instead, which may be more secure in some environments.
+  - If `custom`, **JCrush** will use options `customPre` and `customPost` to wrap the code string.
 
 - `let` (Boolean, default: `false`):
   - If `true`, **JCrush** will use the `let` keyword for variable declarations.
@@ -129,6 +130,13 @@ A configuration object with the following properties:
 
 - `resVars` (Array, default: `[]`):
   Supply an array of variable names that JCrush must NOT use for some reason.
+
+- `customPre` (String, default: ''):
+  Supply a custom string to prepend to the main code string.
+
+- `customPost` (String, default: ''):
+  Supply a custom string to append to the main code string.
+
 
 Additionally, you can alter compression behavior:
 

@@ -1,6 +1,6 @@
 declare module 'jcrush' {
   export interface JCrushOptions {
-    eval?: boolean;
+    eval?: string;
     let?: boolean;
     semi?: boolean;
     strip?: boolean;
@@ -15,6 +15,8 @@ declare module 'jcrush' {
     break?: string[];
     split?: string[];
     escSafe?: boolean;
+    customPre?: string;
+    customPost?: string;
   }
 
   export function code(code: string, opts?: JCrushOptions): string;

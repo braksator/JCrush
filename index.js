@@ -110,7 +110,7 @@ const jcrush = module.exports = {
   code: (jsCode, opts = {}) => {
     // Add default options
     let jsCodeBkp = jsCode;
-    opts = { ...{ eval: 1, let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
+    opts = { ...{ wrap: 'eval', let: 0, semi: 0, break: [], split: [':', ';', ' ', '"', '.', ',', '{', '}', '(', ')', '[', ']', '='],
       maxLen: 40, minOcc: 2, omit: [], trim: 0, clean: 0, escSafe: 1, words: 0, strip: 1, reps: 0, prog: 1, fin: 1, tpl: 0,
       escTpl: 0, resVars: [] }, ...opts };
     // Strip escaped newlines and any whitespace adjacent to them.
@@ -199,7 +199,9 @@ const jcrush = module.exports = {
     // Create variable definitions string
     vars = Object.entries(reps).map(([varName, value]) => varName + '=' + value).join(',');
     // Return the processed JS
-    let out = (opts.let ? 'let ' : '') + vars + ';' + (opts.eval ? `eval(${jsCode})` : `(new Function(${jsCode}))()`) + (opts.semi ? ';' : '');
+    opts.customPre = opts.customPre ? opts.customPre : opts.wrap == 'eval' ? 'eval(' : '(new Function(';
+    opts.customPost = opts.customPost ? opts.customPost : opts.wrap == 'eval' ? ')' : '))()';
+    let out = (opts.let ? 'let ' : '') + vars + ';' + opts.customPre + jsCode + opts.customPost + (opts.semi ? ';' : '');
     saving = originalSize - jcrush.byteLen(out);
     if (saving > 0) {
       opts.fin && console.log(`✅ JCrush reduced code by ${saving} bytes.`);
