@@ -191,7 +191,7 @@ const jcrush = module.exports = {
         varName = jcrush.nextVar(varName);
       } while (opts.resVars.includes(varName));
       // Update jsCode for further dedupe testing
-      jsCode = codeData.map(({ val, type }) => type == 's' ? val : breakString).join('');
+      jsCode = codeData.map(({ val, type }) => type == 's' ? val : opts.tpl ? `\${${val}}` : breakString).join('');
     } while (r && (!opts.reps || opts.reps > repCount));
     // Glue the code back together
     jsCode = opts.tpl ? '`' + codeData.map(({ val, type }) => type == 's' ? val : `\${${val}}`).join('') + '`'
@@ -265,7 +265,7 @@ if (require.main === module) {
     }
   });
   if (args.length < 2) {
-    console.log("Usage: jcrush <input.js> <output.js> [--eval 1|0] [--let 1|0] [--semi 1|0] ...");
+    console.log("Usage: jcrush <input.js> <output.js> [--let 1|0] [--semi 1|0] ...");
     console.log("See README file for full list of arguments.");
     process.exit(1);
   }

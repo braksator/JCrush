@@ -44,13 +44,29 @@ This will process the `input.js` file, deduplicate its strings, and save the out
 
 #### Optional Command Line Flags
 
-You can modify the behavior of **JCrush** by passing the following options as command-line flags:
+You can modify the behavior of **JCrush** by passing command-line flags:
 
 ```bash
-node node_modules/jcrush input.js output.js --eval 1 --let 0
+node node_modules/jcrush input.js output.js --semi 1 --let 0
 ```
 
 See ***Parameters*** section below for an explanation of these options.
+
+### In a Custom Script
+
+Process code in a string:
+```javascript
+var jcrush = require('jcrush');
+var output = jcrush.code(inputCode, opts);
+```
+
+Process a file:
+```javascript
+var jcrush = require('jcrush');
+jcrush.file(inputFilename, outputFilename, opts);
+```
+
+See ***Parameters*** section below for an explanation of the `opts` object.
 
 ### Gulp Integration
 
@@ -66,7 +82,7 @@ import jcrush from 'jcrush';
 
 ```javascript
 gulp.task('jcrush', function () {
-  let opts = { eval: 1, let: 0 }; // Optional - see 'Parameters' section below.
+  let opts = { let: 0 }; // Optional - see 'Parameters' section below.
   return gulp.src('script.min.js')
     .pipe(jcrush.gulp(opts))
     .pipe(gulp.dest('./'));
@@ -131,11 +147,11 @@ A configuration object with the following properties:
 - `resVars` (Array, default: `[]`):
   Supply an array of variable names that JCrush must NOT use for some reason.
 
-- `customPre` (String, default: ''):
-  Supply a custom string to prepend to the main code string.
+- `customPre` (String, default: `''`):
+  Supply a custom string to prepend to the main code string. Used when `wrap` is set to `custom`.
 
-- `customPost` (String, default: ''):
-  Supply a custom string to append to the main code string.
+- `customPost` (String, default: `''`):
+  Supply a custom string to append to the main code string. Used when `wrap` is set to `custom`.
 
 
 Additionally, you can alter compression behavior:
