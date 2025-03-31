@@ -108,7 +108,7 @@ A configuration object with the following properties:
   - If `true`, **JCrush** will strip escaped newlines and any adjacent whitespace from input.
   - If `false`, will retain the input as-is.
 
-- `reps` (Number, default: 0):
+- `reps` (Number, default: `0`):
   - Used to set a maximum number of compression replacements.
 
 - `prog` (Boolean, default: `true`):
@@ -121,7 +121,7 @@ A configuration object with the following properties:
 
 Additionally, you can alter compression behavior:
 
-- `maxLen` (Number, default: 40): The maximum length of substrings to consider.  Setting this higher will slow things down.
+- `maxLen` (Number, default: `40`): The maximum length of substrings to consider.  Setting this higher will slow things down.
 - `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
 - `clean` (Boolean, default: `false`): If `true`, Strips symbols from input.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
