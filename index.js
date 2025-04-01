@@ -192,6 +192,9 @@ const jcrush = module.exports = {
       } while (opts.resVars.includes(varName));
       // Update jsCode for further dedupe testing
       jsCode = codeData.map(({ val, type }) => type == 's' ? val : opts.tpl ? `\${${val}}` : breakString).join('');
+      // Don't maintain segments in template mode
+      if (opts.tpl) codeData = [{val: jsCode, type: 's'}];
+
     } while (r && (!opts.reps || opts.reps > repCount));
     // Glue the code back together
     jsCode = opts.tpl ? '`' + codeData.map(({ val, type }) => type == 's' ? val : `\${${val}}`).join('') + '`'
