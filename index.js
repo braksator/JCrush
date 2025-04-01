@@ -158,7 +158,7 @@ const jcrush = module.exports = {
         }
         quotedSearchStr = jcrush.quoteVal(searchStr);
         tplSearchStr = '${' + searchStr + '}';
-        quotedSearchStrLen = jcrush.byteLen(quotedSearchStr);
+        quotedSearchStrLen = opts.tpl ? jscrush.byteLen(searchStr) + 2 : jcrush.byteLen(quotedSearchStr);
         // Note: The estimate will underestimate the saving by one char in cases where the duplicate strings are adjacent to each other
         estimate = (quotedSearchStrLen - varName.length - overhead - tplOverhead) * r[skipped].count - (varName.length + quotedSearchStrLen + boilerplate);
         estimate < 1 && skipped++;
