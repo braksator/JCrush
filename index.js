@@ -182,7 +182,7 @@ const jcrush = module.exports = {
         }
       }
       // Store the replacement
-      reps[varName] = opts.tpl ? searchStr : quotedSearchStr;
+      reps[varName] = opts.tpl ? '`' + searchStr + '`' : quotedSearchStr;
       repCount++;
       // Report progress
       opts.prog && console.log(repCount + ')', 'Replacing', r[skipped].count, 'instances of', quotedSearchStr, 'saves', estimate, 'chars.');

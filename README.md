@@ -179,9 +179,8 @@ To prevent unnecessarily reprocessing files consider using [gulp-changed](https:
 
 ## Origin
 
-This script is an adaptation of svgTask.js in [Ant Farm Social](https://github.com/antfarmsocial/AntFarmSocial).
-That project takes advantage of the [Longest Repeated Strings](https://www.npmjs.com/package/longestrepeatedstrings) package,
-as does this one.
+This script was written for [Ant Farm Social](https://github.com/antfarmsocial/AntFarmSocial)
+and takes advantage of the [Longest Repeated Strings](https://www.npmjs.com/package/longestrepeatedstrings) package.
 
 ---
 
