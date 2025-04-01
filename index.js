@@ -145,7 +145,7 @@ const jcrush = module.exports = {
       estimate = 0;
       while (skipped < r.length && estimate < 1) {
         searchStr = r[skipped].substring;
-        if (opts.tpl) searchStr = fixTemplateLiteral(searchStr);
+        if (opts.tpl) searchStr = jcrush.fixTemplateLiteral(searchStr);
         if (!jsCode.includes(searchStr)) {
           // Could it be overescaped?
           let unesc = JSON.parse(`"${searchStr}"`);
