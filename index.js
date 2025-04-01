@@ -129,7 +129,7 @@ const jcrush = module.exports = {
       }
       overhead = 0;
       tplOverhead = 3;
-      tplBraces = 2;
+      tplBraces = 3;
     }
     let penaltyCalc = overhead + tplBraces + 1;
     // Keep this loop going while there are results
