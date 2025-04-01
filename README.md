@@ -175,6 +175,16 @@ opportunities are found, whereas fewer splits executes much faster but won't com
 To prevent unnecessarily reprocessing files consider using [gulp-changed](https://www.npmjs.com/package/gulp-changed),
 [gulp-cached](https://www.npmjs.com/package/gulp-cached), or [gulp-newer](https://www.npmjs.com/package/gulp-newer).
 
+For custom scripts, you can add a simple check for file modified times like in this example:
+
+```js
+var fs = require('fs');
+var path = require('path');
+if (!fs.existsSync(outFile) || fs.statSync(inFile).mtime > fs.statSync(outFile).mtime) {
+  // JCrush needs to run
+}
+```
+
 ---
 
 ## Origin
