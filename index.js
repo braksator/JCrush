@@ -197,7 +197,7 @@ const jcrush = module.exports = {
 
     } while (r && (!opts.reps || opts.reps > repCount));
     // Glue the code back together
-    jsCode = opts.tpl ? '`' + codeData.map(({ val, type }) => type == 's' ? val : `\${${val}}`).join('') + '`'
+    jsCode = opts.tpl ? codeData.map(({ val, type }) => type == 's' ? val : `\${${val}}`).join('')
       : codeData.map(({ val, type }) => type == 's' ? jcrush.quoteVal(val) : val).join('+');
     // Create variable definitions string
     vars = Object.entries(reps).map(([varName, value]) => varName + '=' + value).join(',');
