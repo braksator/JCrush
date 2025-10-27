@@ -157,6 +157,9 @@ A configuration object with the following properties:
 Additionally, you can alter compression behavior:
 
 - `maxLen` (Number, default: `40`): The maximum length of substrings to consider.  Setting this higher will slow things down.
+- `minLen` (Number, default: `4`): The minimum length of substrings to consider.
+- `minOcc` (Number, default: `2`): The minimum number of occurrences a substring must have to be included.
+- `penalty` (Number, default: `0`): Per-occurence score penalty, helps order results for deduplication. Setting to the same
 - `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
 - `clean` (Boolean, default: `false`): If `true`, Strips symbols from input.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
@@ -167,6 +170,8 @@ strings and may include them in matches as well as any whitespace afterwards. Se
 to balancing the effectiveness of compression vs the efficiency of execution time.  The more splits in input the more compression
 opportunities are found, whereas fewer splits executes much faster but won't compress as much.
 - `escSafe` (Boolean, default: `true`): Will take extra care around escaped characters.  You'll probably want to keep this.
+
+Balancing these options for your project will be crucial to finding the sweet spot between JCrush deduplication and GZip compression.  Use a tool like [GZip Size Online](https://dafrok.github.io/gzip-size-online/) to compare your various settings.
 
 ---
 
