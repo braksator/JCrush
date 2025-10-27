@@ -159,7 +159,7 @@ Additionally, you can alter compression behavior:
 - `maxLen` (Number, default: `40`): The maximum length of substrings to consider.  Setting this higher will slow things down.
 - `minLen` (Number, default: `4`): The minimum length of substrings to consider.
 - `minOcc` (Number, default: `2`): The minimum number of occurrences a substring must have to be included.
-- `penalty` (Number, default: `0`): Per-occurence score penalty, helps order results for deduplication. Setting to the same
+- `penalty` (Number, default: `0`): Per-occurence score penalty, helps order results for deduplication.
 - `omit` (Array, default: `[]`): An array of substrings to omit from deduplication. Can be used to ignore accepted long/frequent words.
 - `clean` (Boolean, default: `false`): If `true`, Strips symbols from input.  Keep it `false` to dedupe all code, set it to `true` to focus only on words.
 - `words` (Boolean, default: `false`): If `true`, matches whole words which speeds up processing.  When `false` finds more compression opportunities but performs very poorly.
